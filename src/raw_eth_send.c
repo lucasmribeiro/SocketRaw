@@ -95,41 +95,41 @@ int main(int argc, char *argv[])
 	/* Monta o Arp Packet */
 	memset(arp_packet, 0, MAX_ARP_PACKET_SIZE);
     
-    /* Hardware Type */
-    memcpy(arp_packet + arp_len, &hwtype, sizeof(hwtype));
+	/* Hardware Type */
+	memcpy(arp_packet + arp_len, &hwtype, sizeof(hwtype));
 	arp_len += sizeof(hwtype);
  	
-    /* Protocol Type */
-    memcpy(arp_packet + arp_len, &ptype, sizeof(ptype));
+	/* Protocol Type */
+	memcpy(arp_packet + arp_len, &ptype, sizeof(ptype));
 	arp_len += sizeof(ptype);
-   
-    /* Hardware Length */
-    memcpy(arp_packet + arp_len, &hlen, sizeof(hlen));
-    arp_len += sizeof(hlen);
 
-    /* Protocol Length */
-    memcpy(arp_packet + arp_len, &plen, sizeof(plen));
-    arp_len += sizeof(plen);
+	/* Hardware Length */
+	memcpy(arp_packet + arp_len, &hlen, sizeof(hlen));
+	arp_len += sizeof(hlen);
 
-    /* Operation */
-    memcpy(arp_packet + arp_len, &op, sizeof(op));
+	/* Protocol Length */
+	memcpy(arp_packet + arp_len, &plen, sizeof(plen));
+	arp_len += sizeof(plen);
+
+	/* Operation */
+	memcpy(arp_packet + arp_len, &op, sizeof(op));
 	arp_len += sizeof(op);
 
-    /* Sender HA */
-    memcpy(arp_packet + arp_len, sender_ha, sizeof(sender_ha));
-    arp_len += sizeof(sender_ha);
+	/* Sender HA */
+	memcpy(arp_packet + arp_len, sender_ha, sizeof(sender_ha));
+	arp_len += sizeof(sender_ha);
     
-    /* Sender IP */
-    memcpy(arp_packet + arp_len, sender_ip, sizeof(sender_ip));
-    arp_len += sizeof(sender_ip);
+	/* Sender IP */
+	memcpy(arp_packet + arp_len, sender_ip, sizeof(sender_ip));
+	arp_len += sizeof(sender_ip);
 
-    /* Target HA */
-    memcpy(arp_packet + arp_len, target_ha, sizeof(target_ha));
-    arp_len += sizeof(target_ha);
+	/* Target HA */
+	memcpy(arp_packet + arp_len, target_ha, sizeof(target_ha));
+	arp_len += sizeof(target_ha);
 
 	/* Target IP */
-    memcpy(arp_packet + arp_len, target_ip, sizeof(target_ip));
-    arp_len += sizeof(target_ip);
+	memcpy(arp_packet + arp_len, target_ip, sizeof(target_ip));
+	arp_len += sizeof(target_ip);
 
 	/* Preenche o Data com Arp Packet */
 	memcpy(buffer + frame_len, arp_packet, sizeof(arp_packet));
