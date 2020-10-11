@@ -11,6 +11,7 @@
 #define MAC_ADDR_LEN 6
 #define BUFFER_SIZE 1600
 #define MAX_DATA_SIZE 1500
+#define MAX_ARP_PACKET_SIZE 28 
 
 int main(int argc, char *argv[])
 {
@@ -20,10 +21,22 @@ int main(int argc, char *argv[])
 	struct sockaddr_ll socket_address;
 	char ifname[IFNAMSIZ];
 	int frame_len = 0;
+	/* Ethernet */
 	char buffer[BUFFER_SIZE];
-	char data[MAX_DATA_SIZE];
 	char dest_mac[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; //broadcast
-	short int ethertype = htons(0x0FFF);
+	short int ethertype = htons(0x0806); // Default 0x0FFF || Arp 0x0806
+	/* ARP Protocol */
+	int arp_len = 0;
+	char arp_packet[MAX_ARP_PACKET_SIZE];
+	short int hwtype = htons(0x0001);
+	short int ptype  = htons(0x0800);
+	char hlen = 0x06;
+	char plen = 0x04;
+	short int op = htons(0x0001); // 0x0001 - Request || 0x0002 - Response
+	char sender_ha[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+	char sender_ip[] = {0x00, 0x00, 0x00, 0x00};
+	char target_ha[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+	char target_ip[] = {0x00, 0x00, 0x00, 0x00};
 
 	if (argc != 2) {
 		printf("Usage: %s iface\n", argv[0]);
@@ -79,14 +92,49 @@ int main(int argc, char *argv[])
 	memcpy(buffer + frame_len, &ethertype, sizeof(ethertype));
 	frame_len += sizeof(ethertype);
 
-	/* Obtem uma mensagem do usuario */
-	printf("Digite a mensagem: ");
-	scanf("%[^\n]s", data);
+	/* Monta o Arp Packet */
+	memset(arp_packet, 0, MAX_ARP_PACKET_SIZE);
+    
+    /* Hardware Type */
+    memcpy(arp_packet + arp_len, &hwtype, sizeof(hwtype));
+	arp_len += sizeof(hwtype);
+ 	
+    /* Protocol Type */
+    memcpy(arp_packet + arp_len, &ptype, sizeof(ptype));
+	arp_len += sizeof(ptype);
+   
+    /* Hardware Length */
+    memcpy(arp_packet + arp_len, &hlen, sizeof(hlen));
+    arp_len += sizeof(hlen);
 
-	/* Preenche o campo de dados */
-	memcpy(buffer + frame_len, data, strlen(data));
-	frame_len += strlen(data) + 1;
+    /* Protocol Length */
+    memcpy(arp_packet + arp_len, &plen, sizeof(plen));
+    arp_len += sizeof(plen);
 
+    /* Operation */
+    memcpy(arp_packet + arp_len, &op, sizeof(op));
+	arp_len += sizeof(op);
+
+    /* Sender HA */
+    memcpy(arp_packet + arp_len, sender_ha, sizeof(sender_ha));
+    arp_len += sizeof(sender_ha);
+    
+    /* Sender IP */
+    memcpy(arp_packet + arp_len, sender_ip, sizeof(sender_ip));
+    arp_len += sizeof(sender_ip);
+
+    /* Target HA */
+    memcpy(arp_packet + arp_len, target_ha, sizeof(target_ha));
+    arp_len += sizeof(target_ha);
+
+	/* Target IP */
+    memcpy(arp_packet + arp_len, target_ip, sizeof(target_ip));
+    arp_len += sizeof(target_ip);
+
+	/* Preenche o Data com Arp Packet */
+	memcpy(buffer + frame_len, arp_packet, sizeof(arp_packet));
+	frame_len += sizeof(arp_packet);
+	
 	/* Envia pacote */
 	if (sendto(fd, buffer, frame_len, 0, (struct sockaddr *) &socket_address, sizeof (struct sockaddr_ll)) < 0) {
 		perror("send");
