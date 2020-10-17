@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
 	/* Ethernet */
 	char buffer[BUFFER_SIZE];
 	char dest_mac[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; //broadcast
-	short int ethertype = htons(0x0806); // Default 0x0FFF || Arp 0x0806
+	short int ethertype = htons(0x0806); 
 	/* ARP Protocol */
 	int arp_len = 0;
 	char arp_packet[MAX_ARP_PACKET_SIZE];
@@ -32,18 +32,18 @@ int main(int argc, char *argv[])
 	short int ptype  = htons(0x0800);
 	char hlen = 0x06;
 	char plen = 0x04;
-	short int op = htons(0x0001); // 0x0001 - Request || 0x0002 - Response
-	char sender_ha[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-	char sender_ip[] = {0x00, 0x00, 0x00, 0x00};
-	char target_ha[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-	char target_ip[] = {0x00, 0x00, 0x00, 0x00};
+	short int op = htons(0x0001); // 0x0001 - Request ou 0x0002 - Response
+	char sender_ha[] = {0x08, 0x00, 0x27, 0x5c, 0x65, 0x26}; // mac address origin 08:00:27:5c:65:26
+	char sender_ip[] = {192, 168, 15, 15}; // ip origin 192.168.15.15
+	char target_ha[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00}; 
+	char target_ip[] = {192, 168, 15, 2}; // discover ip
 
 	if (argc != 2) {
 		printf("Usage: %s iface\n", argv[0]);
 		return 1;
 	}
 	strcpy(ifname, argv[1]);
-
+	
 	/* Cria um descritor de socket do tipo RAW */
 	if ((fd = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL))) == -1) {
 		perror("socket");

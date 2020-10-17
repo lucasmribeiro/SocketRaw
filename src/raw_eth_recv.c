@@ -9,12 +9,17 @@
 #include <linux/if_packet.h>
 
 #define BUFFER_SIZE 1600
-#define ETHERTYPE 0x0FFF
+#define ETHERTYPE 0x0806
+#define MAC_ADDRESS_SIZE 6
+#define MAX_ARP_PACKET_SIZE 28
+
+const unsigned char mac_add_src[MAC_ADDRESS_SIZE] = {0x54, 0x2f, 0x8a, 0x78, 0xec, 0xf0}; // mac address src 54:2f:8a:78:ec:f0
 
 int main(int argc, char *argv[])
 {
 	int fd;
 	unsigned char buffer[BUFFER_SIZE];
+	unsigned char arp_packet[MAX_ARP_PACKET_SIZE];
 	unsigned char *data;
 	struct ifreq ifr;
 	char ifname[IFNAMSIZ];
@@ -54,9 +59,10 @@ int main(int argc, char *argv[])
 
 	printf("Esperando pacotes ... \n");
 	while (1) {
-		unsigned char mac_dst[6];
-		unsigned char mac_src[6];
+		unsigned char mac_dst[MAC_ADDRESS_SIZE];
+		unsigned char mac_src[MAC_ADDRESS_SIZE];
 		short int ethertype;
+		int len
 
 		/* Recebe pacotes */
 		if (recv(fd,(char *) &buffer, BUFFER_SIZE, 0) < 0) {
@@ -70,9 +76,15 @@ int main(int argc, char *argv[])
 		memcpy(mac_src, buffer+sizeof(mac_dst), sizeof(mac_src));
 		memcpy(&ethertype, buffer+sizeof(mac_dst)+sizeof(mac_src), sizeof(ethertype));
 		ethertype = ntohs(ethertype);
+		/* Copia o conteudo Arp Packet */
+		memcpy(arp_packet, );
 		data = (buffer+sizeof(mac_dst)+sizeof(mac_src)+sizeof(ethertype));
 
 		if (ethertype == ETHERTYPE) {
+			if(memcmp(mac_src, mac_add_src, sizeof(mac_src)) == 0)
+			{
+				continue;
+			}	
 			printf("MAC destino: %02x:%02x:%02x:%02x:%02x:%02x\n", 
                         mac_dst[0], mac_dst[1], mac_dst[2], mac_dst[3], mac_dst[4], mac_dst[5]);
 			printf("MAC origem:  %02x:%02x:%02x:%02x:%02x:%02x\n", 
