@@ -8,11 +8,17 @@
 #include <arpa/inet.h>
 #include <linux/if_packet.h>
 
-#define IP_LEN 4  
+#define N 255
+#define IP_LEN 4 
+#define REQUEST 0x0001
+#define RESPONSE 0x0002
+#define PROTOCOL 0x0806
 #define MAC_ADDR_LEN 6
 #define BUFFER_SIZE 1600
 #define MAX_DATA_SIZE 1500
-#define ARP_PACKET_LEN 28 
+#define ARP_PACKET_LEN 28
+
+ 
 
 int main(int argc, char *argv[])
 {
@@ -25,7 +31,7 @@ int main(int argc, char *argv[])
 	/* Ethernet */
 	char buffer[BUFFER_SIZE];
 	char dest_mac[MAC_ADDR_LEN] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; //broadcast
-	short int ethertype = htons(0x0806); 
+	short int ethertype = htons(PROTOCOL); 
 	/* ARP Protocol */
 	int arp_len = 0;
 	char arp_packet[ARP_PACKET_LEN];
@@ -33,11 +39,11 @@ int main(int argc, char *argv[])
 	short int ptype  = htons(0x0800);
 	char hlen = 0x06;
 	char plen = 0x04;
-	short int op = htons(0x0001); // 0x0001 - Request ou 0x0002 - Response
-	char sender_ha[MAC_ADDR_LEN] = {0x08, 0x00, 0x27, 0x5c, 0x65, 0x26}; // mac address origin 08:00:27:5c:65:26
-	char sender_ip[IP_LEN] = {192, 168, 15, 15}; // ip origin 192.168.15.15
+	short int op = htons(REQUEST);
+	char sender_ha[MAC_ADDR_LEN] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+	char sender_ip[IP_LEN] = {192, 168, 15, 15}; // Alterar para o IP da Interface de Rede
 	char target_ha[MAC_ADDR_LEN] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00}; 
-	char target_ip[IP_LEN] = {192, 168, 15, 1}; // discover ip
+	char target_ip[IP_LEN] = {192, 168, 15, 1}; // Rede a ser descoberta
 
 	if (argc != 2) {
 		printf("Usage: %s iface\n", argv[0]);
@@ -66,6 +72,10 @@ int main(int argc, char *argv[])
 		perror("SIOCGIFHWADDR");
 		exit(1);
 	}
+
+	/* Copia MAC e IP para estrutura ARP */
+	memcpy(sender_ha, if_mac.ifr_hwaddr.sa_data, MAC_ADDR_LEN);
+		
 
 	/* Indice da interface de rede */
 	socket_address.sll_ifindex = if_idx.ifr_ifindex;
@@ -117,23 +127,28 @@ int main(int argc, char *argv[])
 	arp_len += sizeof(op);
 
 	/* Sender HA */
-	memcpy(arp_packet + arp_len, sender_ha, sizeof(sender_ha));
-	arp_len += sizeof(sender_ha);
+	memcpy(arp_packet + arp_len, sender_ha, MAC_ADDR_LEN);
+	arp_len += MAC_ADDR_LEN;
     
 	/* Sender IP */
-	memcpy(arp_packet + arp_len, sender_ip, sizeof(sender_ip));
+	memcpy(arp_packet + arp_len, sender_ip, IP_LEN);
 	arp_len += sizeof(sender_ip);
 
 	/* Target HA */
-	memcpy(arp_packet + arp_len, target_ha, sizeof(target_ha));
-	arp_len += sizeof(target_ha);
+	memcpy(arp_packet + arp_len, target_ha, MAC_ADDR_LEN);
+	arp_len += MAC_ADDR_LEN;
 	
-	for(int k = 1; k < 255; k++)
+	/* Laço para testar todas as N possibilidades de IPs */
+	for(int k = 1; k < N; k++)
 	{
-		if(k == 15) continue;
+		/* Testa se o ARP Request está sendo enviado para ele mesmo */		
+		if(k == sender_ip[IP_LEN-1]) continue;
+		
+		/* Atualiza o IP a ser descoberto */
 		target_ip[3] = k; 
+
 		/* Target IP */
-		memcpy(arp_packet + arp_len, target_ip, sizeof(target_ip));
+		memcpy(arp_packet + arp_len, target_ip, IP_LEN);
 
 		/* Preenche o Data com Arp Packet */
 		memcpy(buffer + frame_len, arp_packet, ARP_PACKET_LEN);

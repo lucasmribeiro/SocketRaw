@@ -13,8 +13,10 @@
 #define ARP_PACKET_LEN 28
 #define MAC_ADDR_LEN 6
 #define IP_LEN 4
+#define SEND 256
 
-const unsigned char mac_addr_src[MAC_ADDR_LEN] = { 0x54, 0x2f, 0x8a, 0x78, 0xec, 0xf0 }; // mac address src 54:2f:8a:78:ec:f0
+/* MAC do Gateway: 54:2f:8a:78:ec:f0 */
+const unsigned char mac_addr_src[MAC_ADDR_LEN] = { 0x54, 0x2f, 0x8a, 0x78, 0xec, 0xf0 };
 
 int main(int argc, char *argv[])
 {
@@ -135,12 +137,15 @@ int main(int argc, char *argv[])
 		memcpy(&target_ip, arp_packet + arp_len, sizeof(target_ip));
 		arp_len += sizeof(target_ip);
 
+		/* Testa se o pacote é ARP */
 		if (ethertype == ETHERTYPE) {
+			/* Ignora pacotes do Gateway */
 			if ((memcmp(mac_src, mac_addr_src, sizeof(mac_src)) == 0) || 
-			(memcmp(mac_dst, mac_addr_src, sizeof(mac_dst)) == 0) || (op == 256))
+			(memcmp(mac_dst, mac_addr_src, sizeof(mac_dst)) == 0) || (op == SEND))
 			{
 				continue;
 			}
+
 			printf("** ARP PACKET **\n");			
 			printf("  EtherType: 0x%04x\n", ethertype);			
 			printf("   Operacao: 0x%02x - %s\n", ntohs(op), (op == 256) ? "Send" : "Reply");
