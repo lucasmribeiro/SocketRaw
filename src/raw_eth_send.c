@@ -9,7 +9,7 @@
 #include <linux/if_packet.h>
 
 #define N 255
-#define IP_LEN 4 
+#define IP_LEN 4
 #define REQUEST 0x0001
 #define RESPONSE 0x0002
 #define PROTOCOL 0x0806
@@ -17,8 +17,6 @@
 #define BUFFER_SIZE 1600
 #define MAX_DATA_SIZE 1500
 #define ARP_PACKET_LEN 28
-
- 
 
 int main(int argc, char *argv[])
 {
@@ -31,7 +29,7 @@ int main(int argc, char *argv[])
 	/* Ethernet */
 	char buffer[BUFFER_SIZE];
 	char dest_mac[MAC_ADDR_LEN] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; //broadcast
-	short int ethertype = htons(PROTOCOL); 
+	short int ethertype = htons(PROTOCOL);
 	/* ARP Protocol */
 	int arp_len = 0;
 	char arp_packet[ARP_PACKET_LEN];
@@ -50,7 +48,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 	strcpy(ifname, argv[1]);
-	
+
 	/* Cria um descritor de socket do tipo RAW */
 	if ((fd = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL))) == -1) {
 		perror("socket");
@@ -75,7 +73,7 @@ int main(int argc, char *argv[])
 
 	/* Copia MAC e IP para estrutura ARP */
 	memcpy(sender_ha, if_mac.ifr_hwaddr.sa_data, MAC_ADDR_LEN);
-		
+
 
 	/* Indice da interface de rede */
 	socket_address.sll_ifindex = if_idx.ifr_ifindex;
@@ -91,7 +89,7 @@ int main(int argc, char *argv[])
 
 	/* Monta o cabecalho Ethernet */
 
-	/* Preenche o campo de endereco MAC de destino */	
+	/* Preenche o campo de endereco MAC de destino */
 	memcpy(buffer, dest_mac, MAC_ADDR_LEN);
 	frame_len += MAC_ADDR_LEN;
 
@@ -105,11 +103,11 @@ int main(int argc, char *argv[])
 
 	/* Monta o Arp Packet */
 	memset(arp_packet, 0, ARP_PACKET_LEN);
-    
+
 	/* Hardware Type */
 	memcpy(arp_packet + arp_len, &hwtype, sizeof(hwtype));
 	arp_len += sizeof(hwtype);
- 	
+
 	/* Protocol Type */
 	memcpy(arp_packet + arp_len, &ptype, sizeof(ptype));
 	arp_len += sizeof(ptype);
@@ -129,7 +127,7 @@ int main(int argc, char *argv[])
 	/* Sender HA */
 	memcpy(arp_packet + arp_len, sender_ha, MAC_ADDR_LEN);
 	arp_len += MAC_ADDR_LEN;
-    
+
 	/* Sender IP */
 	memcpy(arp_packet + arp_len, sender_ip, IP_LEN);
 	arp_len += sizeof(sender_ip);
@@ -137,31 +135,31 @@ int main(int argc, char *argv[])
 	/* Target HA */
 	memcpy(arp_packet + arp_len, target_ha, MAC_ADDR_LEN);
 	arp_len += MAC_ADDR_LEN;
-	
+
 	/* Laço para testar todas as N possibilidades de IPs */
 	for(int k = 1; k < N; k++)
 	{
-		/* Testa se o ARP Request está sendo enviado para ele mesmo */		
+		/* Testa se o ARP Request está sendo enviado para ele mesmo */
 		if(k == sender_ip[IP_LEN-1]) continue;
-		
+
 		/* Atualiza o IP a ser descoberto */
-		target_ip[3] = k; 
+		target_ip[3] = k;
 
 		/* Target IP */
 		memcpy(arp_packet + arp_len, target_ip, IP_LEN);
 
 		/* Preenche o Data com Arp Packet */
 		memcpy(buffer + frame_len, arp_packet, ARP_PACKET_LEN);
-		
-		
+
 		/* Envia pacote */
 		if (sendto(fd, buffer, frame_len+sizeof(arp_packet), 0, (struct sockaddr *) &socket_address, sizeof (struct sockaddr_ll)) < 0) {
 			perror("send");
 			close(fd);
 			exit(1);
 		}
-		printf("Pacote enviado.\n");		
 	}
+
+	printf("Pacotes enviado.\n");
 
 	close(fd);
 	return 0;

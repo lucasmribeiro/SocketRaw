@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
 	unsigned char sender_ip[IP_LEN];
 	unsigned char target_ha[MAC_ADDR_LEN];
 	unsigned char target_ip[IP_LEN];
-	
+
 	if (argc != 2) {
 		printf("Usage: %s iface\n", argv[0]);
 		return 1;
@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
 			close(fd);
 			exit(1);
 		}
-        
+
 		/* Copia o conteudo do cabecalho Ethernet */
 		memcpy(mac_dst, buffer, sizeof(mac_dst));
 		frame_len += sizeof(mac_dst);
@@ -99,20 +99,20 @@ int main(int argc, char *argv[])
 		ethertype = ntohs(ethertype);
 		/* Copia o conteudo Arp Packet */
 		memcpy(arp_packet, buffer+frame_len, sizeof(arp_packet));
-		frame_len += sizeof(arp_packet);	
+		frame_len += sizeof(arp_packet);
 
 		/* Hardware Type */
 		memcpy(&hwtype, arp_packet + arp_len, sizeof(hwtype));
 		arp_len += sizeof(hwtype);
-		
+
 		/* Protocol Type */
 		memcpy(&ptype, arp_packet + arp_len, sizeof(ptype));
 		arp_len += sizeof(ptype);
-		
+
 		/* Hardware Length */
 		memcpy(&hlen, arp_packet + arp_len, sizeof(hlen));
 		arp_len += sizeof(hlen);
-		
+
 		/* Protocol Length */
 		memcpy(&plen, arp_packet + arp_len, sizeof(plen));
 		arp_len += sizeof(plen);
@@ -140,21 +140,20 @@ int main(int argc, char *argv[])
 		/* Testa se o pacote é ARP */
 		if (ethertype == ETHERTYPE) {
 			/* Ignora pacotes do Gateway */
-			if ((memcmp(mac_src, mac_addr_src, sizeof(mac_src)) == 0) || 
+			if ((memcmp(mac_src, mac_addr_src, sizeof(mac_src)) == 0) ||
 			(memcmp(mac_dst, mac_addr_src, sizeof(mac_dst)) == 0) || (op == SEND))
 			{
 				continue;
 			}
 
-			printf("** ARP PACKET **\n");			
-			printf("  EtherType: 0x%04x\n", ethertype);			
+			printf("** ARP PACKET **\n");
+			printf("  EtherType: 0x%04x\n", ethertype);
 			printf("   Operacao: 0x%02x - %s\n", ntohs(op), (op == 256) ? "Send" : "Reply");
 			printf(" MAC origem: %02x:%02x:%02x:%02x:%02x:%02x\n", mac_src[0], mac_src[1], mac_src[2], mac_src[3], mac_src[4], mac_src[5]);
 			printf("  IP origem: %d.%d.%d.%d\n", sender_ip[0], sender_ip[1], sender_ip[2], sender_ip[3]);
 			printf("MAC destino: %02x:%02x:%02x:%02x:%02x:%02x\n", mac_dst[0], mac_dst[1], mac_dst[2], mac_dst[3], mac_dst[4], mac_dst[5]);
 			printf(" IP destino: %d.%d.%d.%d\n", target_ip[0], target_ip[1], target_ip[2], target_ip[3]);
-						
-			printf("\n\n");		
+			printf("\n\n");
 
 		}
 	}
